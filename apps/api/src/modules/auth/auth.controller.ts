@@ -16,10 +16,7 @@ import type { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  /**
-   * POST /api/v1/auth/login
-   * Ruta pública — devuelve el token JWT y los datos del usuario.
-   */
+  //Ruta pública — devuelve el token JWT y los datos del usuario.
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
@@ -27,10 +24,7 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  /**
-   * GET /api/v1/auth/me
-   * Requiere token válido — devuelve el perfil del usuario autenticado.
-   */
+  // Requiere token válido — devuelve el perfil del usuario autenticado.
   @Get('me')
   me(@CurrentUser() user: JwtPayload) {
     return this.authService.me(user);
