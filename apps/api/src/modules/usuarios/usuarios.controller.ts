@@ -16,9 +16,9 @@ import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
+import { Rol } from 'src/common/enums/rol.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { Rol } from 'src/common/enums/rol.enum';
 import type { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @Controller('usuarios')

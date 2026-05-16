@@ -1,27 +1,18 @@
-/*
-  Warnings:
-
-  - You are about to drop the `usuario` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "Rol" AS ENUM ('administrador', 'responsable_almacen', 'solicitador', 'aprobador', 'auditor');
 
--- DropTable
-DROP TABLE "usuario";
-
 -- CreateTable
-CREATE TABLE "Unidad" (
+CREATE TABLE "unidad" (
     "id" SERIAL NOT NULL,
     "nombre" TEXT NOT NULL,
     "sigla" TEXT NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
 
-    CONSTRAINT "Unidad_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "unidad_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "Usuario" (
+CREATE TABLE "usuario" (
     "id" SERIAL NOT NULL,
     "nombre" TEXT NOT NULL,
     "usuario" TEXT NOT NULL,
@@ -32,14 +23,14 @@ CREATE TABLE "Usuario" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "Usuario_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "usuario_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Unidad_sigla_key" ON "Unidad"("sigla");
+CREATE UNIQUE INDEX "unidad_sigla_key" ON "unidad"("sigla");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Usuario_usuario_key" ON "Usuario"("usuario");
+CREATE UNIQUE INDEX "usuario_usuario_key" ON "usuario"("usuario");
 
 -- AddForeignKey
-ALTER TABLE "Usuario" ADD CONSTRAINT "Usuario_unidadId_fkey" FOREIGN KEY ("unidadId") REFERENCES "Unidad"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "usuario" ADD CONSTRAINT "usuario_unidadId_fkey" FOREIGN KEY ("unidadId") REFERENCES "unidad"("id") ON DELETE SET NULL ON UPDATE CASCADE;

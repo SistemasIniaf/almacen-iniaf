@@ -11,11 +11,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { UnidadesService } from './unidades.service';
+
+import { Rol } from 'src/common/enums/rol.enum';
+import { Roles } from 'src/common/decorators/roles.decorator';
 import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { UpdateUnidadDto } from './dto/update-unidad.dto';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { Rol } from '../../common/enums/rol.enum';
+import { UnidadesService } from './unidades.service';
 
 @Controller('unidades')
 export class UnidadesController {

@@ -1,17 +1,17 @@
 import {
-  BadRequestException,
-  ConflictException,
   Injectable,
+  ConflictException,
   NotFoundException,
+  BadRequestException,
   UnauthorizedException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
+import { Rol } from 'src/common/enums/rol.enum';
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
-import { Rol } from 'src/common/enums/rol.enum';
 
 const SALT_ROUNDS = 10;
 

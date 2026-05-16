@@ -1,5 +1,5 @@
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import { Request } from 'express';
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 /**
  * Extrae el usuario autenticado inyectado por JwtStrategy.

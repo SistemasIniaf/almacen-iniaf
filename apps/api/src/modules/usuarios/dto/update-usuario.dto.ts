@@ -1,6 +1,7 @@
 import { PartialType, OmitType } from '@nestjs/mapped-types';
-import { CreateUsuarioDto } from './create-usuario.dto';
 import { IsOptional, IsString, MinLength } from 'class-validator';
+
+import { CreateUsuarioDto } from './create-usuario.dto';
 
 // Omitimos password del PartialType y lo redefinimos como opcional explícito
 // para dejar claro que cambiar la contraseña es intencional

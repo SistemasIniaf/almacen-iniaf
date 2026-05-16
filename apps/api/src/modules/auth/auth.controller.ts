@@ -6,11 +6,13 @@ import {
   HttpStatus,
   Post,
 } from '@nestjs/common';
-import { AuthService } from './auth.service';
+
+import { Public } from 'src/common/decorators/public.decorator';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+
 import { LoginDto } from './dto/login.dto';
-import { Public } from '../../common/decorators/public.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import type { JwtPayload } from '../../common/interfaces/jwt-payload.interface';
+import { AuthService } from './auth.service';
+import type { JwtPayload } from 'src/common/interfaces/jwt-payload.interface';
 
 @Controller('auth')
 export class AuthController {
