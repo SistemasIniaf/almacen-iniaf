@@ -1,6 +1,12 @@
 import { z } from "zod"
 
-export const rolEnum = ["admin", "encargado", "operador"] as const
+export const rolEnum = [
+  "administrador",
+  "responsable_almacen",
+  "solicitador",
+  "aprobador",
+  "auditor",
+] as const
 
 export type Rol = (typeof rolEnum)[number]
 

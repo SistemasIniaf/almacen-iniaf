@@ -1,4 +1,5 @@
 import * as React from "react"
+import { Package, MonitorCog } from "lucide-react"
 
 import { NavMain } from "./NavMain"
 import { NavUser } from "./NavUser"
@@ -12,35 +13,24 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { Package, MonitorCog } from "lucide-react"
+import { useUser } from "@/store/auth.store"
 
-const data = {
-  user: {
-    name: "Admin",
-    rol: "admin",
-    avatar: "",
+const navMain = [
+  {
+    title: "Administrar",
+    url: "#",
+    icon: <MonitorCog />,
+    isActive: true,
+    items: [
+      { title: "Usuarios", url: "/usuarios" },
+      { title: "Unidades", url: "/unidades" },
+    ],
   },
-  navMain: [
-    {
-      title: "Administrar",
-      url: "#",
-      icon: <MonitorCog />,
-      isActive: true,
-      items: [
-        {
-          title: "Usuarios",
-          url: "/usuarios",
-        },
-        {
-          title: "Unidades",
-          url: "/unidades",
-        },
-      ],
-    },
-  ],
-}
+]
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const user = useUser()
+
   return (
     <Sidebar variant="floating" collapsible="icon" {...props}>
       <SidebarHeader>
@@ -62,11 +52,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
 
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={navMain} />
       </SidebarContent>
 
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser
+          user={{
+            name: user?.nombre ?? "",
+            rol: user?.rol ?? "",
+            avatar: "",
+          }}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

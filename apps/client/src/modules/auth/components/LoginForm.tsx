@@ -1,23 +1,35 @@
-"use client"
-
 import { cn } from "@/lib/utils"
+import { isAxiosError } from "axios"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
-import { Button } from "@/components/ui//button"
-import { Card, CardContent } from "@/components/ui//card"
-import { Field, FieldDescription, FieldGroup } from "@/components/ui//field"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Field, FieldDescription, FieldGroup } from "@/components/ui/field"
 
 import { FormInput } from "@/components/form/FormInput"
-import { loginSchema } from "../lib/usuario.schema"
 import { FormInputPassword } from "@/components/form/FormInputPassword"
-import type { LoginFormInput, LoginFormOutput } from "../lib/usuario.schema"
+
+import { useLogin } from "../hooks/useLogin"
+import { loginSchema } from "../lib/login.schema"
+
+import type { LoginFormInput } from "../lib/login.schema"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { control, handleSubmit } = useForm<LoginFormInput>({
+  const {
+    mutate: login,
+    isPending,
+    error,
+  } = useLogin({
+    onError: () => {
+      resetField("password")
+    },
+  })
+
+  const { control, handleSubmit, resetField } = useForm<LoginFormInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       usuario: "",
@@ -26,9 +38,14 @@ export function LoginForm({
   })
 
   function onSubmit(data: LoginFormInput) {
-    const validated: LoginFormOutput = loginSchema.parse(data)
-    console.log(validated)
+    login(data)
   }
+
+  // Extrae el mensaje de error que viene del backend
+  const errorMessage = isAxiosError(error)
+    ? ((error.response?.data as { message?: string })?.message ??
+      "Error al iniciar sesión")
+    : null
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -43,28 +60,43 @@ export function LoginForm({
                 </p>
               </div>
 
-              <FormInput name="usuario" label="Usuario" control={control} />
+              <FormInput
+                name="usuario"
+                label="Usuario"
+                control={control}
+                disabled={isPending}
+              />
               <FormInputPassword
                 name="password"
                 label="Contraseña"
                 control={control}
+                disabled={isPending}
               />
 
+              {/* Error del servidor (credenciales incorrectas, usuario inactivo, etc.) */}
+              {errorMessage && (
+                <p className="text-center text-sm text-destructive">
+                  {errorMessage}
+                </p>
+              )}
+
               <Field className="mt-4">
-                <Button type="submit">Iniciar sesión</Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Iniciando sesión..." : "Iniciar sesión"}
+                </Button>
               </Field>
 
               <FieldDescription className="text-center">
-                ¿No tienes cuenta? <a href="#">Regístrate</a>
+                Sistema de gestión de almacén
               </FieldDescription>
             </FieldGroup>
           </form>
 
           <div className="relative hidden bg-muted md:block">
             <img
-              src="/placeholder.svg"
+              src="/banner.jpg"
               alt="Image"
-              className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+              className="absolute inset-0 h-full w-full object-cover"
             />
           </div>
         </CardContent>

@@ -1,16 +1,19 @@
 import { Outlet } from "react-router-dom"
-
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { Separator } from "@/components/ui/separator"
-
 import { AppSidebar } from "@/modules/dashboard/components/AppSidebar"
 import { DynamicBreadcrumb } from "../components/DynamicBreadcrumb"
+import { useMe } from "@/modules/auth/hooks/useMe"
 
 export const DashboardLayout = () => {
+  // Valida el token contra el servidor y refresca los datos del usuario
+  // Si el token expiró, el interceptor de axios hace logout automáticamente
+  useMe()
+
   return (
     <SidebarProvider>
       <AppSidebar />

@@ -1,5 +1,8 @@
 "use client"
 
+import { useNavigate } from "react-router-dom"
+import { ChevronsUpDownIcon, LogOutIcon, UserIcon } from "lucide-react"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -16,29 +19,24 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import {
-  ChevronsUpDownIcon,
-  SparklesIcon,
-  BadgeCheckIcon,
-  CreditCardIcon,
-  BellIcon,
-  LogOutIcon,
-} from "lucide-react"
-
 import { getInitials, getAvatarColor, getAvatarUrl } from "@/lib/avatar"
+import { useAuthStore } from "@/store/auth.store"
 
 export function NavUser({
   user,
 }: {
-  user: {
-    name: string
-    rol: string
-    avatar?: string
-  }
+  user: { name: string; rol: string; avatar?: string }
 }) {
   const { isMobile } = useSidebar()
+  const navigate = useNavigate()
+  const logout = useAuthStore((s) => s.logout)
 
   const avatarUrl = getAvatarUrl(user.name, user.avatar)
+
+  function handleLogout() {
+    logout()
+    navigate("/auth/login", { replace: true })
+  }
 
   return (
     <SidebarMenu>
@@ -57,12 +55,10 @@ export function NavUser({
                   {getInitials(user.name)}
                 </AvatarFallback>
               </Avatar>
-
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
                 <span className="truncate text-xs">{user.rol}</span>
               </div>
-
               <ChevronsUpDownIcon className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
@@ -83,7 +79,6 @@ export function NavUser({
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
-
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.rol}</span>
@@ -95,33 +90,16 @@ export function NavUser({
 
             <DropdownMenuGroup>
               <DropdownMenuItem>
-                <SparklesIcon />
-                Upgrade to Pro
+                <UserIcon />
+                Mi perfil
               </DropdownMenuItem>
             </DropdownMenuGroup>
 
             <DropdownMenuSeparator />
 
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheckIcon />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCardIcon />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <BellIcon />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-
-            <DropdownMenuSeparator />
-
-            <DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onClick={handleLogout}>
               <LogOutIcon />
-              Log out
+              Cerrar sesión
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
