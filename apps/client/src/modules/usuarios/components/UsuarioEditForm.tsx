@@ -20,66 +20,63 @@ import { DialogClose, DialogFooter } from "@/components/ui/dialog"
 import { FormInput } from "@/components/form/FormInput"
 import { FormInputPassword } from "@/components/form/FormInputPassword"
 
-import { useCreateUsuario } from "../hooks/useUsuarios"
+import { updateUsuarioSchema, rolEnum, rolLabels } from "../lib/usuario.schema"
+import { useUpdateUsuario } from "../hooks/useUsuarios"
 import { useUnidadesOptions } from "../hooks/useUnidadesOptions"
-import { createUsuarioSchema, rolEnum, rolLabels } from "../lib/usuario.schema"
 
-import type { CreateUsuarioFormInput } from "../lib/usuario.schema"
+import type { Usuario } from "../types/usuario.types"
+import type { UpdateUsuarioFormInput } from "../lib/usuario.schema"
 
-interface UsuarioFormProps {
+interface UsuarioEditFormProps {
+  usuario: Usuario
   onClose?: () => void
 }
 
-export function UsuarioForm({ onClose }: UsuarioFormProps) {
+export function UsuarioEditForm({ usuario, onClose }: UsuarioEditFormProps) {
   const { options: unidadesOptions, isLoading: loadingUnidades } =
     useUnidadesOptions()
 
-  const { control, handleSubmit, reset, setError, setValue } =
-    useForm<CreateUsuarioFormInput>({
-      resolver: zodResolver(createUsuarioSchema),
+  const { control, handleSubmit, setError, setValue } =
+    useForm<UpdateUsuarioFormInput>({
+      resolver: zodResolver(updateUsuarioSchema),
       defaultValues: {
-        nombre: "",
-        usuario: "",
+        nombre: usuario.nombre,
+        usuario: usuario.usuario,
         password: "",
-        rol: undefined,
-        unidadId: null,
-        activo: true,
+        rol: usuario.rol,
+        unidadId: usuario.unidadId ?? null,
+        activo: usuario.activo,
       },
     })
 
   const rolActual = useWatch({ control, name: "rol" })
   const esAdmin = rolActual === "administrador"
 
-  const { mutate: createUsuario, isPending } = useCreateUsuario({
-    onSuccess: () => {
-      reset()
-      onClose?.()
-    },
+  const { mutate: updateUsuario, isPending } = useUpdateUsuario({
+    onSuccess: () => onClose?.(),
   })
 
-  function onSubmit(data: CreateUsuarioFormInput) {
-    const parsed = createUsuarioSchema.parse(data)
+  function onSubmit(data: UpdateUsuarioFormInput) {
+    const parsed = updateUsuarioSchema.parse(data)
 
-    createUsuario(parsed, {
-      onError: (error) => {
-        if (isAxiosError(error)) {
-          const message =
-            (error.response?.data as { message?: string })?.message ??
-            "Error al crear el usuario"
+    updateUsuario(
+      { id: usuario.id, payload: parsed },
+      {
+        onError: (error) => {
+          if (isAxiosError(error)) {
+            const message =
+              (error.response?.data as { message?: string })?.message ??
+              "Error al actualizar el usuario"
 
-          if (message.toLowerCase().includes("usuario")) {
-            setError("usuario", { message })
-          } else {
-            setError("root", { message })
+            if (message.toLowerCase().includes("usuario")) {
+              setError("usuario", { message })
+            } else {
+              setError("root", { message })
+            }
           }
-        }
-      },
-    })
-  }
-
-  function handleCancel() {
-    reset()
-    onClose?.()
+        },
+      }
+    )
   }
 
   return (
@@ -90,20 +87,20 @@ export function UsuarioForm({ onClose }: UsuarioFormProps) {
           label="Nombre completo"
           control={control}
           disabled={isPending}
-          placeholder="Ej: Juan Pérez"
         />
         <FormInput
           name="usuario"
           label="Usuario"
           control={control}
           disabled={isPending}
-          placeholder="Ej: jperez"
         />
         <FormInputPassword
           name="password"
-          label="Contraseña"
+          label="Nueva contraseña"
           control={control}
           disabled={isPending}
+          required={false}
+          placeholder="Dejar vacío para no cambiar"
         />
 
         {/* Rol */}
@@ -142,7 +139,7 @@ export function UsuarioForm({ onClose }: UsuarioFormProps) {
           )}
         />
 
-        {/* Unidad — solo si NO es administrador */}
+        {/* Unidad */}
         {!esAdmin && (
           <Controller
             name="unidadId"
@@ -188,12 +185,12 @@ export function UsuarioForm({ onClose }: UsuarioFormProps) {
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="outline" onClick={handleCancel} disabled={isPending}>
+          <Button variant="outline" disabled={isPending}>
             Cancelar
           </Button>
         </DialogClose>
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Registrando..." : "Registrar"}
+          {isPending ? "Guardando..." : "Guardar cambios"}
         </Button>
       </DialogFooter>
     </form>

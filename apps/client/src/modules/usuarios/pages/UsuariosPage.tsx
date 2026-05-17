@@ -1,4 +1,5 @@
 import { UsuarioDialog } from "../components/UsuarioDialog"
+import { UsuariosTable } from "../components/UsuariosTable"
 
 export const UsuariosPage = () => {
   return (
@@ -15,7 +16,7 @@ export const UsuariosPage = () => {
         <UsuarioDialog />
       </div>
 
-      {/* TODO: tabla de usuarios */}
+      <UsuariosTable />
     </div>
   )
 }

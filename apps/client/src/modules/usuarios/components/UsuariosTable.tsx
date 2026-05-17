@@ -5,7 +5,6 @@ import {
   Trash2Icon,
   ToggleLeftIcon,
   ToggleRightIcon,
-  UsersIcon,
 } from "lucide-react"
 
 import {
@@ -31,20 +30,30 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 
 import {
-  useUnidades,
-  useToggleUnidad,
-  useDeleteUnidad,
-} from "../hooks/useUnidades"
-import { UnidadEditDialog } from "./UnidadDialog"
-import type { Unidad } from "../types/unidad.types"
+  useUsuarios,
+  useToggleUsuario,
+  useDeleteUsuario,
+} from "../hooks/useUsuarios"
+import { UsuarioEditDialog } from "./UsuarioDialog"
+import { rolLabels } from "../lib/usuario.schema"
 
-export function UnidadesTable() {
-  const { data: unidades, isLoading, isError } = useUnidades()
-  const { mutate: toggle, isPending: isToggling } = useToggleUnidad()
-  const { mutate: remove, isPending: isDeleting } = useDeleteUnidad()
+import type { Usuario } from "../types/usuario.types"
 
-  const [editTarget, setEditTarget] = useState<Unidad | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<Unidad | null>(null)
+const rolVariant: Record<string, "default" | "secondary" | "outline"> = {
+  administrador: "default",
+  responsable_almacen: "secondary",
+  solicitador: "outline",
+  aprobador: "outline",
+  auditor: "outline",
+}
+
+export function UsuariosTable() {
+  const { data: usuarios, isLoading, isError } = useUsuarios()
+  const { mutate: toggle, isPending: isToggling } = useToggleUsuario()
+  const { mutate: remove, isPending: isDeleting } = useDeleteUsuario()
+
+  const [editTarget, setEditTarget] = useState<Usuario | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<Usuario | null>(null)
   const [deleteError, setDeleteError] = useState<string | null>(null)
 
   function handleDelete() {
@@ -57,7 +66,7 @@ export function UnidadesTable() {
         if (isAxiosError(error)) {
           const message =
             (error.response?.data as { message?: string })?.message ??
-            "No se pudo eliminar la unidad"
+            "No se pudo eliminar el usuario"
           setDeleteError(message)
         }
       },
@@ -66,8 +75,8 @@ export function UnidadesTable() {
 
   if (isLoading) {
     return (
-      <div className="space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="space-y-1">
+        {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
@@ -77,15 +86,15 @@ export function UnidadesTable() {
   if (isError) {
     return (
       <p className="py-8 text-center text-sm text-destructive">
-        Error al cargar las unidades. Intenta de nuevo.
+        Error al cargar los usuarios. Intenta de nuevo.
       </p>
     )
   }
 
-  if (!unidades?.length) {
+  if (!usuarios?.length) {
     return (
       <p className="py-8 text-center text-sm text-muted-foreground">
-        No hay unidades registradas.
+        No hay usuarios registrados.
       </p>
     )
   }
@@ -97,67 +106,73 @@ export function UnidadesTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Sigla</TableHead>
-              <TableHead className="text-center">Usuarios</TableHead>
+              <TableHead>Usuario</TableHead>
+              <TableHead>Rol</TableHead>
+              <TableHead>Unidad</TableHead>
               <TableHead className="text-center">Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
-            {unidades.map((unidad) => (
-              <TableRow key={unidad.id}>
-                <TableCell className="font-medium">{unidad.nombre}</TableCell>
+            {usuarios.map((usuario) => (
+              <TableRow key={usuario.id}>
+                <TableCell className="font-medium">{usuario.nombre}</TableCell>
+                <TableCell className="font-mono text-xs text-muted-foreground">
+                  {usuario.usuario}
+                </TableCell>
                 <TableCell>
-                  <span className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
-                    {unidad.sigla}
-                  </span>
+                  <Badge variant={rolVariant[usuario.rol] ?? "outline"}>
+                    {rolLabels[usuario.rol] ?? usuario.rol}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {usuario.unidad ? (
+                    <span className="inline-flex items-center gap-1 text-sm">
+                      <span className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">
+                        {usuario.unidad.sigla}
+                      </span>
+                      {usuario.unidad.nombre}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                    <UsersIcon className="size-3.5" />
-                    {unidad._count.usuarios}
-                  </span>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant={unidad.activo ? "default" : "secondary"}>
-                    {unidad.activo ? "Activo" : "Inactivo"}
+                  <Badge variant={usuario.activo ? "default" : "secondary"}>
+                    {usuario.activo ? "Activo" : "Inactivo"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    {/* Editar */}
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() => setEditTarget(unidad)}
+                      onClick={() => setEditTarget(usuario)}
                       title="Editar"
                     >
                       <PencilIcon />
                     </Button>
 
-                    {/* Toggle activo/inactivo */}
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() => toggle(unidad.id)}
+                      onClick={() => toggle(usuario.id)}
                       disabled={isToggling}
-                      title={unidad.activo ? "Desactivar" : "Activar"}
+                      title={usuario.activo ? "Desactivar" : "Activar"}
                     >
-                      {unidad.activo ? (
+                      {usuario.activo ? (
                         <ToggleRightIcon className="text-primary" />
                       ) : (
                         <ToggleLeftIcon className="text-muted-foreground" />
                       )}
                     </Button>
 
-                    {/* Eliminar */}
                     <Button
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => {
                         setDeleteError(null)
-                        setDeleteTarget(unidad)
+                        setDeleteTarget(usuario)
                       }}
                       disabled={isDeleting}
                       title="Eliminar"
@@ -174,8 +189,8 @@ export function UnidadesTable() {
 
       {/* Dialog de edición */}
       {editTarget && (
-        <UnidadEditDialog
-          unidad={editTarget}
+        <UsuarioEditDialog
+          usuario={editTarget}
           open={!!editTarget}
           onOpenChange={(open) => !open && setEditTarget(null)}
         />
@@ -193,11 +208,11 @@ export function UnidadesTable() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar unidad?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar usuario?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. La unidad{" "}
+              Esta acción no se puede deshacer. El usuario{" "}
               <span className="font-semibold">{deleteTarget?.nombre}</span> será
-              eliminada permanentemente.
+              eliminado permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
 
