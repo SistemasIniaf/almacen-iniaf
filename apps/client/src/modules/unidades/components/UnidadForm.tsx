@@ -1,5 +1,4 @@
-"use client"
-
+import { isAxiosError } from "axios"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 
@@ -7,30 +6,51 @@ import { Button } from "@/components/ui/button"
 import { FormInput } from "@/components/form/FormInput"
 import { FieldGroup } from "@/components/ui/field"
 import { DialogClose, DialogFooter } from "@/components/ui/dialog"
-import { unidadSchema } from "../lib/unidad.schema"
 
-import type { UnidadFormInput, UnidadFormOutput } from "../lib/unidad.schema"
+import { unidadSchema } from "../lib/unidad.schema"
+import { useCreateUnidad } from "../hooks/useUnidades"
+import type { UnidadFormInput } from "../lib/unidad.schema"
 
 interface UnidadFormProps {
   onClose?: () => void
 }
 
 export function UnidadForm({ onClose }: UnidadFormProps) {
-  const { control, handleSubmit, reset } = useForm<UnidadFormInput>({
+  const { control, handleSubmit, reset, setError } = useForm<UnidadFormInput>({
     resolver: zodResolver(unidadSchema),
     defaultValues: {
       nombre: "",
-      ubicacion: "",
+      sigla: "",
       activo: true,
     },
   })
 
-  function onSubmit(data: UnidadFormInput) {
-    const validated: UnidadFormOutput = unidadSchema.parse(data)
-    console.log(validated)
+  const { mutate: createUnidad, isPending } = useCreateUnidad({
+    onSuccess: () => {
+      reset()
+      onClose?.()
+    },
+  })
 
-    reset()
-    onClose?.()
+  function onSubmit(data: UnidadFormInput) {
+    const parsed = unidadSchema.parse(data)
+
+    createUnidad(parsed, {
+      onError: (error) => {
+        if (isAxiosError(error)) {
+          const message =
+            (error.response?.data as { message?: string })?.message ??
+            "Error al crear la unidad"
+
+          // Si es error de sigla duplicada, lo marca en el campo
+          if (message.toLowerCase().includes("sigla")) {
+            setError("sigla", { message })
+          } else {
+            setError("root", { message })
+          }
+        }
+      },
+    })
   }
 
   function handleCancel() {
@@ -41,22 +61,31 @@ export function UnidadForm({ onClose }: UnidadFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <FieldGroup>
-        <FormInput name="nombre" label="Nombre" control={control} />
         <FormInput
-          name="ubicacion"
-          label="Ubicación"
+          name="nombre"
+          label="Nombre"
           control={control}
-          required={false}
+          disabled={isPending}
+          placeholder="Ej: Unidad de Tecnología"
+        />
+        <FormInput
+          name="sigla"
+          label="Sigla"
+          control={control}
+          disabled={isPending}
+          placeholder="Ej: UTI"
         />
       </FieldGroup>
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button variant="outline" onClick={handleCancel}>
+          <Button variant="outline" onClick={handleCancel} disabled={isPending}>
             Cancelar
           </Button>
         </DialogClose>
-        <Button type="submit">Registrar</Button>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? "Registrando..." : "Registrar"}
+        </Button>
       </DialogFooter>
     </form>
   )

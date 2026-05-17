@@ -1,6 +1,5 @@
-"use client"
-
 import { UnidadDialog } from "../components/UnidadDialog"
+import { UnidadesTable } from "../components/UnidadesTable"
 
 export default function UnidadesPage() {
   return (
@@ -11,13 +10,13 @@ export default function UnidadesPage() {
             Unidades
           </h1>
           <p className="text-sm text-muted-foreground">
-            Gestiona las unidades.
+            Gestiona las unidades del sistema.
           </p>
         </div>
         <UnidadDialog />
       </div>
 
-      {/* TODO: tabla de usuarios */}
+      <UnidadesTable />
     </div>
   )
 }
