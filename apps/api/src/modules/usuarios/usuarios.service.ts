@@ -16,7 +16,6 @@ import { PaginationDto, paginate } from 'src/common/dto/pagination.dto';
 
 const SALT_ROUNDS = 10;
 
-/** Campos seguros para devolver al cliente (sin password) */
 const safeSelect = {
   id: true,
   nombre: true,
@@ -46,7 +45,6 @@ export class UsuariosService {
       return;
     }
 
-    // Todos los demás roles requieren unidad
     if (!unidadId) {
       throw new BadRequestException(
         `El rol "${rol}" requiere tener una unidad asignada`,
@@ -104,15 +102,45 @@ export class UsuariosService {
     const page = pagination.page ?? 1;
     const limit = pagination.limit ?? 10;
     const skip = (page - 1) * limit;
+    const search = pagination.search?.trim();
 
-    const where = soloActivos ? { activo: true } : undefined;
+    const where = {
+      ...(soloActivos ? { activo: true } : {}),
+      // Búsqueda en nombre, usuario o sigla/nombre de unidad
+      ...(search
+        ? {
+            OR: [
+              { nombre: { contains: search, mode: 'insensitive' as const } },
+              { usuario: { contains: search, mode: 'insensitive' as const } },
+              {
+                unidad: {
+                  OR: [
+                    {
+                      nombre: {
+                        contains: search,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                    {
+                      sigla: {
+                        contains: search,
+                        mode: 'insensitive' as const,
+                      },
+                    },
+                  ],
+                },
+              },
+            ],
+          }
+        : {}),
+    };
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.usuario.findMany({
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { nombre: 'asc' },
         select: safeSelect,
       }),
       this.prisma.usuario.count({ where }),
@@ -141,7 +169,6 @@ export class UsuariosService {
       await this.verificarUsuarioUnico(dto.usuario, id);
     }
 
-    // Determinar el rol final para validar unidad
     const rolFinal = (dto.rol ?? actual.rol) as Rol;
     const unidadFinal =
       dto.unidadId !== undefined
@@ -155,7 +182,6 @@ export class UsuariosService {
       data.password = await bcrypt.hash(dto.password, SALT_ROUNDS);
     }
 
-    // Si se cambia a administrador, limpiar unidad
     if (rolFinal === Rol.ADMINISTRADOR) {
       data.unidadId = null;
     }
@@ -204,7 +230,7 @@ export class UsuariosService {
   }
 
   async remove(id: number) {
-    await this.findOne(id); // valida existencia
+    await this.findOne(id);
 
     return this.prisma.usuario.delete({
       where: { id },

@@ -19,6 +19,7 @@ export const usuariosService = {
       params: {
         page: pagination.page,
         limit: pagination.limit,
+        ...(pagination.search ? { search: pagination.search } : {}),
         ...(soloActivos ? { soloActivos: "true" } : {}),
       },
     })
@@ -39,7 +40,6 @@ export const usuariosService = {
     id: number,
     payload: Partial<UpdateUsuarioFormOutput>
   ): Promise<Usuario> => {
-    // Si password viene vacío, no lo enviamos
     const body = { ...payload }
     if (!body.password) delete body.password
 

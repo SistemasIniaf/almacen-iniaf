@@ -14,6 +14,7 @@ export function usePagination({
     page: initialPage,
     limit: initialLimit,
   })
+  const [search, setSearchValue] = useState("")
 
   const setPage = useCallback((page: number) => {
     setPagination((prev) => ({ ...prev, page }))
@@ -24,9 +25,16 @@ export function usePagination({
     setPagination({ page: 1, limit })
   }, [])
 
+  const setSearch = useCallback((value: string) => {
+    setSearchValue(value)
+    // Al buscar siempre volvemos a la página 1
+    setPagination((prev) => ({ ...prev, page: 1 }))
+  }, [])
+
   const reset = useCallback(() => {
     setPagination({ page: initialPage, limit: initialLimit })
+    setSearchValue("")
   }, [initialPage, initialLimit])
 
-  return { pagination, setPage, setLimit, reset }
+  return { pagination, search, setPage, setLimit, setSearch, reset }
 }

@@ -21,13 +21,13 @@ export const unidadesService = {
       params: {
         page: pagination.page,
         limit: pagination.limit,
+        ...(pagination.search ? { search: pagination.search } : {}),
         ...(soloActivos ? { soloActivos: "true" } : {}),
       },
     })
     return data
   },
 
-  // Para selects — sin paginar, solo activas
   findAllActive: async (): Promise<UnidadOption[]> => {
     const { data } = await api.get<UnidadOption[]>("/unidades/all")
     return data

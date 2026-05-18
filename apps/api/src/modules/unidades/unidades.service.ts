@@ -32,7 +32,6 @@ export class UnidadesService {
     });
   }
 
-  // sin paginar solo activas
   findAllActive() {
     return this.prisma.unidad.findMany({
       where: { activo: true },
@@ -45,7 +44,20 @@ export class UnidadesService {
     const page = pagination.page ?? 1;
     const limit = pagination.limit ?? 10;
     const skip = (page - 1) * limit;
-    const where = soloActivos ? { activo: true } : undefined;
+    const search = pagination.search?.trim();
+
+    const where = {
+      ...(soloActivos ? { activo: true } : {}),
+      // Búsqueda en nombre O sigla, case-insensitive
+      ...(search
+        ? {
+            OR: [
+              { nombre: { contains: search, mode: 'insensitive' as const } },
+              { sigla: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
+    };
 
     const [data, total] = await this.prisma.$transaction([
       this.prisma.unidad.findMany({
@@ -91,7 +103,7 @@ export class UnidadesService {
   }
 
   async update(id: number, dto: UpdateUnidadDto) {
-    await this.findOne(id); // valida existencia
+    await this.findOne(id);
 
     if (dto.sigla) {
       const siglaUpper = dto.sigla.toUpperCase();
