@@ -112,7 +112,7 @@ export class UsuariosService {
         where,
         skip,
         take: limit,
-        orderBy: { nombre: 'asc' },
+        orderBy: { createdAt: 'desc' },
         select: safeSelect,
       }),
       this.prisma.usuario.count({ where }),

@@ -36,7 +36,7 @@ export class UnidadesService {
   findAllActive() {
     return this.prisma.unidad.findMany({
       where: { activo: true },
-      orderBy: { nombre: 'asc' },
+      orderBy: { createdAt: 'desc' },
       select: { id: true, nombre: true, sigla: true },
     });
   }
@@ -52,7 +52,7 @@ export class UnidadesService {
         where,
         skip,
         take: limit,
-        orderBy: { nombre: 'asc' },
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
           nombre: true,
