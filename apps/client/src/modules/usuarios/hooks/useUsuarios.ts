@@ -5,15 +5,19 @@ import type {
   CreateUsuarioFormOutput,
   UpdateUsuarioFormOutput,
 } from "../lib/usuario.schema"
+import type { PaginationParams } from "@/common/types/pagination.types"
 
 export const USUARIOS_KEY = ["usuarios"] as const
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-export function useUsuarios(soloActivos?: boolean) {
+export function useUsuarios(
+  pagination: PaginationParams,
+  soloActivos?: boolean
+) {
   return useQuery({
-    queryKey: [...USUARIOS_KEY, { soloActivos }],
-    queryFn: () => usuariosService.findAll(soloActivos),
+    queryKey: [...USUARIOS_KEY, pagination, { soloActivos }],
+    queryFn: () => usuariosService.findAll(pagination, soloActivos),
   })
 }
 

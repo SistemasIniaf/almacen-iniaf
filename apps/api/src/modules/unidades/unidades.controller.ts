@@ -14,10 +14,10 @@ import {
 
 import { Rol } from 'src/common/enums/rol.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
+import { UnidadesService } from './unidades.service';
 import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { UpdateUnidadDto } from './dto/update-unidad.dto';
-import { UnidadesService } from './unidades.service';
-
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 @Controller('unidades')
 export class UnidadesController {
   constructor(private unidadesService: UnidadesService) {}
@@ -29,10 +29,18 @@ export class UnidadesController {
     return this.unidadesService.create(dto);
   }
 
+  @Get('all')
+  findAllActive() {
+    return this.unidadesService.findAllActive();
+  }
+
   // -Todos los roles autenticados pueden listar unidades. ?soloActivos=true → filtra solo las activas.
   @Get()
-  findAll(@Query('soloActivos') soloActivos?: string) {
-    return this.unidadesService.findAll(soloActivos === 'true');
+  findAll(
+    @Query() pagination: PaginationDto,
+    @Query('soloActivos') soloActivos?: string,
+  ) {
+    return this.unidadesService.findAll(pagination, soloActivos === 'true');
   }
 
   // Incluye la lista de usuarios asignados.

@@ -15,6 +15,7 @@ import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 import { Rol } from 'src/common/enums/rol.enum';
 import { Roles } from 'src/common/decorators/roles.decorator';
@@ -35,8 +36,11 @@ export class UsuariosController {
   // Solo administrador puede listar todos los usuarios. ?soloActivos=true → filtra solo los activos.
   @Get()
   @Roles(Rol.ADMINISTRADOR)
-  findAll(@Query('soloActivos') soloActivos?: string) {
-    return this.usuariosService.findAll(soloActivos === 'true');
+  findAll(
+    @Query() pagination: PaginationDto,
+    @Query('soloActivos') soloActivos?: string,
+  ) {
+    return this.usuariosService.findAll(pagination, soloActivos === 'true');
   }
 
   // Cualquier usuario autenticado puede ver su propio perfil.

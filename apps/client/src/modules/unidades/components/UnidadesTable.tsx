@@ -1,5 +1,4 @@
 import { useState } from "react"
-import { isAxiosError } from "axios"
 import {
   PencilIcon,
   Trash2Icon,
@@ -7,7 +6,11 @@ import {
   ToggleRightIcon,
   UsersIcon,
 } from "lucide-react"
+import { isAxiosError } from "axios"
 
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -26,9 +29,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Skeleton } from "@/components/ui/skeleton"
 
 import {
   useUnidades,
@@ -36,10 +36,14 @@ import {
   useDeleteUnidad,
 } from "../hooks/useUnidades"
 import { UnidadEditDialog } from "./UnidadDialog"
+import { usePagination } from "@/common/hooks/usePagination"
+import { Pagination } from "@/common/components/Pagination"
 import type { Unidad } from "../types/unidad.types"
 
 export function UnidadesTable() {
-  const { data: unidades, isLoading, isError } = useUnidades()
+  const { pagination, setPage, setLimit } = usePagination({ initialLimit: 10 })
+
+  const { data, isLoading, isError } = useUnidades(pagination)
   const { mutate: toggle, isPending: isToggling } = useToggleUnidad()
   const { mutate: remove, isPending: isDeleting } = useDeleteUnidad()
 
@@ -67,7 +71,7 @@ export function UnidadesTable() {
   if (isLoading) {
     return (
       <div className="space-y-2">
-        {Array.from({ length: 4 }).map((_, i) => (
+        {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-12 w-full" />
         ))}
       </div>
@@ -78,14 +82,6 @@ export function UnidadesTable() {
     return (
       <p className="py-8 text-center text-sm text-destructive">
         Error al cargar las unidades. Intenta de nuevo.
-      </p>
-    )
-  }
-
-  if (!unidades?.length) {
-    return (
-      <p className="py-8 text-center text-sm text-muted-foreground">
-        No hay unidades registradas.
       </p>
     )
   }
@@ -103,76 +99,90 @@ export function UnidadesTable() {
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
-
           <TableBody>
-            {unidades.map((unidad) => (
-              <TableRow key={unidad.id}>
-                <TableCell className="font-medium">{unidad.nombre}</TableCell>
-                <TableCell>
-                  <span className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
-                    {unidad.sigla}
-                  </span>
-                </TableCell>
-                <TableCell className="text-center">
-                  <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-                    <UsersIcon className="size-3.5" />
-                    {unidad._count.usuarios}
-                  </span>
-                </TableCell>
-                <TableCell className="text-center">
-                  <Badge variant={unidad.activo ? "default" : "secondary"}>
-                    {unidad.activo ? "Activo" : "Inactivo"}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    {/* Editar */}
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => setEditTarget(unidad)}
-                      title="Editar"
-                    >
-                      <PencilIcon />
-                    </Button>
-
-                    {/* Toggle activo/inactivo */}
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => toggle(unidad.id)}
-                      disabled={isToggling}
-                      title={unidad.activo ? "Desactivar" : "Activar"}
-                    >
-                      {unidad.activo ? (
-                        <ToggleRightIcon className="text-primary" />
-                      ) : (
-                        <ToggleLeftIcon className="text-muted-foreground" />
-                      )}
-                    </Button>
-
-                    {/* Eliminar */}
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      onClick={() => {
-                        setDeleteError(null)
-                        setDeleteTarget(unidad)
-                      }}
-                      disabled={isDeleting}
-                      title="Eliminar"
-                    >
-                      <Trash2Icon className="text-destructive" />
-                    </Button>
-                  </div>
+            {data?.data.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={5}
+                  className="py-8 text-center text-muted-foreground"
+                >
+                  No hay unidades registradas.
                 </TableCell>
               </TableRow>
-            ))}
+            ) : (
+              data?.data.map((unidad) => (
+                <TableRow key={unidad.id}>
+                  <TableCell className="font-medium">{unidad.nombre}</TableCell>
+                  <TableCell>
+                    <span className="rounded bg-muted px-2 py-0.5 font-mono text-xs">
+                      {unidad.sigla}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                      <UsersIcon className="size-3.5" />
+                      {unidad._count.usuarios}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge variant={unidad.activo ? "default" : "secondary"}>
+                      {unidad.activo ? "Activo" : "Inactivo"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setEditTarget(unidad)}
+                        title="Editar"
+                      >
+                        <PencilIcon />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => toggle(unidad.id)}
+                        disabled={isToggling}
+                        title={unidad.activo ? "Desactivar" : "Activar"}
+                      >
+                        {unidad.activo ? (
+                          <ToggleRightIcon className="text-primary" />
+                        ) : (
+                          <ToggleLeftIcon className="text-muted-foreground" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => {
+                          setDeleteError(null)
+                          setDeleteTarget(unidad)
+                        }}
+                        disabled={isDeleting}
+                        title="Eliminar"
+                      >
+                        <Trash2Icon className="text-destructive" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </div>
 
-      {/* Dialog de edición */}
+      {/* Paginación */}
+      {data?.meta && (
+        <Pagination
+          meta={data.meta}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
+      )}
+
+      {/* Dialog edición */}
       {editTarget && (
         <UnidadEditDialog
           unidad={editTarget}
@@ -181,7 +191,7 @@ export function UnidadesTable() {
         />
       )}
 
-      {/* Confirmación de eliminación */}
+      {/* Confirmación eliminación */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => {
@@ -200,11 +210,9 @@ export function UnidadesTable() {
               eliminada permanentemente.
             </AlertDialogDescription>
           </AlertDialogHeader>
-
           {deleteError && (
             <p className="text-sm text-destructive">{deleteError}</p>
           )}
-
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction

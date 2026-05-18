@@ -7,6 +7,8 @@ CREATE TABLE "unidad" (
     "nombre" TEXT NOT NULL,
     "sigla" TEXT NOT NULL,
     "activo" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "unidad_pkey" PRIMARY KEY ("id")
 );

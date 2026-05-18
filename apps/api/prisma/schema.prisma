@@ -28,18 +28,22 @@ model Unidad {
   activo   Boolean   @default(true)
   usuarios Usuario[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@map("unidad")
 }
 
 model Usuario {
-  id        Int      @id @default(autoincrement())
-  nombre    String
-  usuario   String   @unique
-  password  String
-  rol       Rol
-  activo    Boolean  @default(true)
-  unidadId  Int?
-  unidad    Unidad?  @relation(fields: [unidadId], references: [id])
+  id       Int     @id @default(autoincrement())
+  nombre   String
+  usuario  String  @unique
+  password String
+  rol      Rol
+  activo   Boolean @default(true)
+  unidadId Int?
+  unidad   Unidad? @relation(fields: [unidadId], references: [id])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

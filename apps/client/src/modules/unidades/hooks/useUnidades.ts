@@ -1,16 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { unidadesService } from "../services/unidades.service"
-
 import type { UnidadFormOutput } from "../lib/unidad.schema"
+import type { PaginationParams } from "@/common/types/pagination.types"
 
 export const UNIDADES_KEY = ["unidades"] as const
 
 // ── Queries ───────────────────────────────────────────────────────────────────
 
-export function useUnidades(soloActivos?: boolean) {
+export function useUnidades(
+  pagination: PaginationParams,
+  soloActivos?: boolean
+) {
   return useQuery({
-    queryKey: [...UNIDADES_KEY, { soloActivos }],
-    queryFn: () => unidadesService.findAll(soloActivos),
+    queryKey: [...UNIDADES_KEY, pagination, { soloActivos }],
+    queryFn: () => unidadesService.findAll(pagination, soloActivos),
+  })
+}
+
+export function useUnidadesActive() {
+  return useQuery({
+    queryKey: [...UNIDADES_KEY, "active"],
+    queryFn: () => unidadesService.findAllActive(),
+    staleTime: 1000 * 60 * 5, // 5 min — cambian poco
   })
 }
 

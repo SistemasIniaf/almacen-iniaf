@@ -1,15 +1,26 @@
 import { api } from "@/lib/axios"
 
 import type {
+  PaginatedResponse,
+  PaginationParams,
+} from "@/common/types/pagination.types"
+import type {
   CreateUsuarioFormOutput,
   UpdateUsuarioFormOutput,
 } from "../lib/usuario.schema"
 import type { Usuario } from "../types/usuario.types"
 
 export const usuariosService = {
-  findAll: async (soloActivos?: boolean): Promise<Usuario[]> => {
-    const { data } = await api.get<Usuario[]>("/usuarios", {
-      params: soloActivos ? { soloActivos: "true" } : undefined,
+  findAll: async (
+    pagination: PaginationParams,
+    soloActivos?: boolean
+  ): Promise<PaginatedResponse<Usuario>> => {
+    const { data } = await api.get<PaginatedResponse<Usuario>>("/usuarios", {
+      params: {
+        page: pagination.page,
+        limit: pagination.limit,
+        ...(soloActivos ? { soloActivos: "true" } : {}),
+      },
     })
     return data
   },

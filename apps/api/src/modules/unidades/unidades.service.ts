@@ -7,6 +7,7 @@ import {
 import { PrismaService } from 'prisma/prisma.service';
 import { CreateUnidadDto } from './dto/create-unidad.dto';
 import { UpdateUnidadDto } from './dto/update-unidad.dto';
+import { PaginationDto, paginate } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class UnidadesService {
@@ -31,18 +32,39 @@ export class UnidadesService {
     });
   }
 
-  findAll(soloActivos?: boolean) {
+  // sin paginar solo activas
+  findAllActive() {
     return this.prisma.unidad.findMany({
-      where: soloActivos ? { activo: true } : undefined,
+      where: { activo: true },
       orderBy: { nombre: 'asc' },
-      select: {
-        id: true,
-        nombre: true,
-        sigla: true,
-        activo: true,
-        _count: { select: { usuarios: true } },
-      },
+      select: { id: true, nombre: true, sigla: true },
     });
+  }
+
+  async findAll(pagination: PaginationDto, soloActivos?: boolean) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 10;
+    const skip = (page - 1) * limit;
+    const where = soloActivos ? { activo: true } : undefined;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.unidad.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { nombre: 'asc' },
+        select: {
+          id: true,
+          nombre: true,
+          sigla: true,
+          activo: true,
+          _count: { select: { usuarios: true } },
+        },
+      }),
+      this.prisma.unidad.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async findOne(id: number) {

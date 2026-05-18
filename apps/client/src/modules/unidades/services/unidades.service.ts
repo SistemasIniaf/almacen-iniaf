@@ -1,13 +1,35 @@
 import { api } from "@/lib/axios"
-
 import type { Unidad, UnidadDetalle } from "../types/unidad.types"
 import type { UnidadFormOutput } from "../lib/unidad.schema"
+import type {
+  PaginatedResponse,
+  PaginationParams,
+} from "@/common/types/pagination.types"
+
+export interface UnidadOption {
+  id: number
+  nombre: string
+  sigla: string
+}
 
 export const unidadesService = {
-  findAll: async (soloActivos?: boolean): Promise<Unidad[]> => {
-    const { data } = await api.get<Unidad[]>("/unidades", {
-      params: soloActivos ? { soloActivos: "true" } : undefined,
+  findAll: async (
+    pagination: PaginationParams,
+    soloActivos?: boolean
+  ): Promise<PaginatedResponse<Unidad>> => {
+    const { data } = await api.get<PaginatedResponse<Unidad>>("/unidades", {
+      params: {
+        page: pagination.page,
+        limit: pagination.limit,
+        ...(soloActivos ? { soloActivos: "true" } : {}),
+      },
     })
+    return data
+  },
+
+  // Para selects — sin paginar, solo activas
+  findAllActive: async (): Promise<UnidadOption[]> => {
+    const { data } = await api.get<UnidadOption[]>("/unidades/all")
     return data
   },
 

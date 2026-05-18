@@ -12,6 +12,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { PaginationDto, paginate } from 'src/common/dto/pagination.dto';
 
 const SALT_ROUNDS = 10;
 
@@ -99,12 +100,25 @@ export class UsuariosService {
     });
   }
 
-  findAll(soloActivos?: boolean) {
-    return this.prisma.usuario.findMany({
-      where: soloActivos ? { activo: true } : undefined,
-      orderBy: { nombre: 'asc' },
-      select: safeSelect,
-    });
+  async findAll(pagination: PaginationDto, soloActivos?: boolean) {
+    const page = pagination.page ?? 1;
+    const limit = pagination.limit ?? 10;
+    const skip = (page - 1) * limit;
+
+    const where = soloActivos ? { activo: true } : undefined;
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.usuario.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { nombre: 'asc' },
+        select: safeSelect,
+      }),
+      this.prisma.usuario.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async findOne(id: number) {
